@@ -1,0 +1,7 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+google-cloud-aiplatform[agent_engines,adk]>=1.112
+google-cloud-storage>=2.16
+google-genai>=1.0.0
+Pillow>=10.0

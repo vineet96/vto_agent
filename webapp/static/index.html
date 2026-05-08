@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Image Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f1ea;
+    --ink: #1a1714;
+    --accent: #c84e1a;
+    --muted: #6b655d;
+    --line: #1a17141a;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font-family: 'Fraunces', Georgia, serif;
+    font-feature-settings: 'ss01', 'ss02';
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+  }
+  header {
+    padding: 28px 40px 16px;
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 1px solid var(--line);
+  }
+  header h1 {
+    margin: 0;
+    font-weight: 800;
+    font-size: 32px;
+    letter-spacing: -0.02em;
+  }
+  header h1 .accent { color: var(--accent); font-style: italic; }
+  header .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  main {
+    flex: 1;
+    max-width: 880px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 24px 24px 200px;
+  }
+  .msg { margin: 28px 0; }
+  .msg .who {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.18em;
+    color: var(--muted); text-transform: uppercase; margin-bottom: 8px;
+  }
+  .msg.user .who { color: var(--accent); }
+  .msg .body {
+    font-size: 19px; line-height: 1.55;
+  }
+  .msg .body p { margin: 0 0 8px; }
+  .msg .imgs {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;
+  }
+  .msg .imgs img {
+    max-width: 320px; max-height: 320px;
+    border-radius: 4px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  }
+  .typing {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .typing::after {
+    content: '▋';
+    margin-left: 2px;
+    animation: blink 1s steps(2) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .err {
+    background: #fff3ee;
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #6a2a0e;
+    border-radius: 2px;
+  }
+
+  /* Composer at bottom */
+  .composer-wrap {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, var(--bg) 70%, transparent);
+    padding: 24px 24px 28px;
+  }
+  .composer {
+    max-width: 880px; margin: 0 auto;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.08);
+    padding: 14px;
+  }
+  .pending-files {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;
+  }
+  .pending-files:empty { display: none; }
+  .pending-files .chip {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg); padding: 4px 8px 4px 6px;
+    border-radius: 999px; font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .pending-files .chip img {
+    width: 22px; height: 22px; object-fit: cover; border-radius: 50%;
+  }
+  .pending-files .chip button {
+    background: none; border: none; cursor: pointer; color: var(--muted);
+    font-size: 14px; line-height: 1; padding: 0;
+  }
+  .composer .row { display: flex; align-items: center; gap: 10px; }
+  .composer textarea {
+    flex: 1;
+    border: none; outline: none; resize: none;
+    font: inherit; font-size: 18px; color: var(--ink);
+    background: transparent;
+    min-height: 28px; max-height: 140px;
+    padding: 4px 0;
+  }
+  .composer button.icon, .composer button.send {
+    background: none; border: none; cursor: pointer; color: var(--muted);
+    padding: 6px 8px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  }
+  .composer button.icon:hover, .composer button.send:hover { color: var(--ink); }
+  .composer button.send {
+    background: var(--ink); color: var(--bg);
+    padding: 8px 16px; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px;
+  }
+  .composer button.send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .empty {
+    color: var(--muted); font-size: 17px; line-height: 1.6;
+    margin-top: 36px;
+  }
+  .empty strong { color: var(--ink); }
+  .empty code {
+    font-family: 'JetBrains Mono', monospace; font-size: 14px;
+    background: rgba(200, 78, 26, 0.08); color: var(--accent);
+    padding: 1px 5px; border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Image <span class="accent">Studio</span></h1>
+    <div class="meta" id="status">connecting…</div>
+  </header>
+  <main id="log">
+    <div class="empty" id="empty">
+      Try-on or edit images by chatting.<br>
+      Upload a photo with the <strong>📎 attach</strong> button, then say what you want — e.g.
+      <em>“try this shirt on me”</em> or <em>“change the dress to navy blue.”</em>
+    </div>
+  </main>
+
+  <div class="composer-wrap">
+    <form class="composer" id="composer">
+      <div class="pending-files" id="pending"></div>
+      <div class="row">
+        <button type="button" class="icon" id="attachBtn" title="Attach image">📎</button>
+        <input type="file" id="fileInput" accept="image/*" multiple hidden>
+        <textarea id="msg" rows="1" placeholder="Ask the studio…"></textarea>
+        <button type="submit" class="send" id="sendBtn">Send</button>
+      </div>
+    </form>
+  </div>
+
+<script>
+const log = document.getElementById('log');
+const empty = document.getElementById('empty');
+const status = document.getElementById('status');
+const form = document.getElementById('composer');
+const msg = document.getElementById('msg');
+const fileInput = document.getElementById('fileInput');
+const attachBtn = document.getElementById('attachBtn');
+const pending = document.getElementById('pending');
+const sendBtn = document.getElementById('sendBtn');
+
+const userId = localStorage.userId || (localStorage.userId = 'u-' + Math.random().toString(36).slice(2, 10));
+let sessionId = null;
+let pendingFiles = [];
+
+attachBtn.onclick = () => fileInput.click();
+fileInput.onchange = () => {
+  for (const f of fileInput.files) addPendingFile(f);
+  fileInput.value = '';
+};
+
+function addPendingFile(f) {
+  pendingFiles.push(f);
+  const chip = document.createElement('span');
+  chip.className = 'chip';
+  const img = document.createElement('img');
+  img.src = URL.createObjectURL(f);
+  chip.appendChild(img);
+  const label = document.createElement('span');
+  label.textContent = f.name.length > 18 ? f.name.slice(0, 16) + '…' : f.name;
+  chip.appendChild(label);
+  const x = document.createElement('button');
+  x.type = 'button'; x.textContent = '×';
+  x.onclick = () => {
+    pendingFiles = pendingFiles.filter(p => p !== f);
+    chip.remove();
+  };
+  chip.appendChild(x);
+  pending.appendChild(chip);
+}
+
+msg.addEventListener('input', () => {
+  msg.style.height = 'auto';
+  msg.style.height = Math.min(140, msg.scrollHeight) + 'px';
+});
+msg.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+});
+
+async function ensureSession() {
+  if (sessionId) return sessionId;
+  const fd = new FormData();
+  fd.append('user_id', userId);
+  const r = await fetch('/api/session', { method: 'POST', body: fd });
+  if (!r.ok) throw new Error('session create failed');
+  const j = await r.json();
+  sessionId = j.session_id;
+  status.textContent = 'session ' + sessionId.slice(0, 8);
+  return sessionId;
+}
+
+function appendMsg(who, role) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  const w = document.createElement('div'); w.className = 'who'; w.textContent = who;
+  const b = document.createElement('div'); b.className = 'body';
+  div.appendChild(w); div.appendChild(b);
+  log.appendChild(div);
+  empty.style.display = 'none';
+  div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  return b;
+}
+
+form.onsubmit = async (e) => {
+  e.preventDefault();
+  const text = msg.value.trim();
+  if (!text && pendingFiles.length === 0) return;
+  sendBtn.disabled = true;
+
+  // Render the user turn locally.
+  const userBody = appendMsg('you', 'user');
+  if (text) {
+    const p = document.createElement('p'); p.textContent = text; userBody.appendChild(p);
+  }
+  if (pendingFiles.length) {
+    const imgs = document.createElement('div'); imgs.className = 'imgs';
+    for (const f of pendingFiles) {
+      const im = document.createElement('img');
+      im.src = URL.createObjectURL(f);
+      imgs.appendChild(im);
+    }
+    userBody.appendChild(imgs);
+  }
+  msg.value = ''; msg.style.height = 'auto';
+
+  // Build request.
+  const fd = new FormData();
+  fd.append('user_id', userId);
+  fd.append('session_id', await ensureSession());
+  fd.append('message', text);
+  for (const f of pendingFiles) fd.append('files', f);
+  pendingFiles = []; pending.innerHTML = '';
+
+  // Render an agent placeholder.
+  const agentBody = appendMsg('studio', 'agent');
+  const typing = document.createElement('span'); typing.className = 'typing'; typing.textContent = 'thinking';
+  agentBody.appendChild(typing);
+
+  // Stream the reply.
+  let resp;
+  try {
+    resp = await fetch('/api/chat', { method: 'POST', body: fd });
+  } catch (err) {
+    typing.remove();
+    const e = document.createElement('div'); e.className = 'err'; e.textContent = 'Network error: ' + err;
+    agentBody.appendChild(e);
+    sendBtn.disabled = false;
+    return;
+  }
+  if (!resp.ok) {
+    typing.remove();
+    const e = document.createElement('div'); e.className = 'err'; e.textContent = 'HTTP ' + resp.status;
+    agentBody.appendChild(e);
+    sendBtn.disabled = false;
+    return;
+  }
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+  let firstChunk = true;
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf('\n\n')) >= 0) {
+      const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
+      const lines = chunk.split('\n');
+      let event = 'message', data = '';
+      for (const ln of lines) {
+        if (ln.startsWith('event:')) event = ln.slice(6).trim();
+        else if (ln.startsWith('data:')) data += ln.slice(5).trim();
+      }
+      if (!data) continue;
+      let payload; try { payload = JSON.parse(data); } catch { continue; }
+      if (firstChunk) { typing.remove(); firstChunk = false; }
+      handleEvent(event, payload, agentBody);
+    }
+  }
+  if (firstChunk) typing.remove();
+  sendBtn.disabled = false;
+};
+
+function handleEvent(event, payload, body) {
+  if (event === 'text') {
+    const p = document.createElement('p'); p.textContent = payload.text; body.appendChild(p);
+  } else if (event === 'image') {
+    let imgs = body.querySelector('.imgs');
+    if (!imgs) { imgs = document.createElement('div'); imgs.className = 'imgs'; body.appendChild(imgs); }
+    const im = document.createElement('img'); im.src = payload.data_url; imgs.appendChild(im);
+  } else if (event === 'error') {
+    const e = document.createElement('div'); e.className = 'err'; e.textContent = payload.message; body.appendChild(e);
+  }
+  body.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+// Kick off a session immediately for nicer status text.
+ensureSession().catch(err => { status.textContent = 'session error'; });
+</script>
+</body>
+</html>
