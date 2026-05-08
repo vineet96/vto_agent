@@ -1,0 +1,5 @@
+.adk
+deploy/__pycache--
+vto_agent/.adk
+vto_agent/__pycache__
+vto_agent/.env
